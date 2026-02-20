@@ -1,134 +1,100 @@
-# MPI-Based Parallel Matrix Multiplication
+# 🧮 MPI Parallel Matrix Multiplication — High-Performance Computing Topologies
 
-## Project Description
-This project implements **Matrix-Matrix Multiplication** using the **Message Passing Interface (MPI)** to parallelize computations across multiple processors. High-performance computing tasks often require calculations too massive for a single computer to handle efficiently. This project solves that problem by splitting the workload among a "team" of processors.
+[A punchy one-sentence summary: Accelerating large-scale matrix operations through distributed memory architectures and Message Passing Interface (MPI) topologies.]
 
-The application is written in C and demonstrates two distinct logical topologies for organizing processes:
-1.  **Ring Topology**: Processes are arranged in a logical ring where data flows in a circle. Utilizes a **1D Row-wise Decomposition** strategy.
-2.  **Grid Topology**: Processes are arranged in a 2D checkerboard (Cartesian grid). Utilizes a **2D Grid Decomposition** strategy.
+[![C](https://img.shields.io/badge/C-00599C?style=for-the-badge&logo=c&logoColor=white)](https://en.wikipedia.org/wiki/C_(programming_language))
+[![MPI](https://img.shields.io/badge/MPI-Message_Passing_Interface-blue.svg?style=for-the-badge)](https://www.mpi-forum.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-## Key Features
-*   **Parallel Computation**: Utilizes `MPI_Scatter`, `MPI_Gather`, and `MPI_Bcast` to distribute data and collect results, significantly reducing execution time compared to serial processing.
-*   **Flexible Topologies**:
-    *   **Ring**: Implements a 1D decomposition where the Root process scatters rows of Matrix B and broadcasts Matrix C.
-    *   **Grid**: Implements a 2D decomposition using `MPI_Cart_create` to organize processes into coordinates.
-*   **Dynamic Matrix Sizing**: The matrix dimension ($N \times N$) can be defined at compile-time using preprocessor macros (e.g., `-DN=64`).
-*   **File I/O Integration**: Reads input matrices from a file (`input.txt`) and writes the assembled result to an output file (`outputA.txt`).
-*   **Performance Metrics**: The application measures and reports the total execution time using `MPI_Wtime`.
+---
 
-## Technical Implementation
+## 📋 Overview
+**MPI Parallel Matrix Multiplication** is a high-performance computing framework designed to execute massive matrix calculations efficiently. Built using the **Message Passing Interface (MPI)** in C, this project distributes computational workloads across multiple processors using advanced topological decompositions, drastically reducing execution time for large-scale matrices.
 
-### Ring Topology (`matrix_matrix_ring.c`)
-This implementation utilizes a **1D Row-wise Decomposition** strategy.
+## 🎯 The Problem
+Modern computational tasks require matrix operations that exceed the processing power and memory limits of single processors, leading to:
+* **Computational Bottlenecks:** Single-core processors cannot scale efficiently to calculate $N \times N$ matrices when $N$ becomes extremely large.
+* **Execution Delays:** Serial processing with $O(N^3)$ complexity creates unacceptable latency for scientific modeling.
+* **Hardware Limitations:** Processing exceptionally large arrays sequentially exhausts centralized resources quickly.
 
-*   **Topology**: A 1D logical ring topology is created using `MPI_Cart_create` (1D, periodic).
-*   **Data Distribution**:
-    *   **Matrix B**: Distributed (scattered) among processes using `MPI_Scatter`. The root process handles extra rows if $N$ is not divisible by the number of processes.
-    *   **Matrix C**: Replicated (broadcast) to all processes using `MPI_Bcast`. Every process receives the full Matrix C.
-*   **Computation**: Each process computes a sub-block of the result matrix $A$ (`APart`) corresponding to the rows of $B$ it received. The partial results are then gathered back to the root process using `MPI_Gather`.
+## ✅ The Solution
+This platform transforms serial bottlenecks into high-throughput parallel pipelines using a dual-topology mathematical strategy:
 
-### Grid Topology (`matrix_matrix_grid.c`)
-This implementation utilizes a **2D Grid Decomposition** strategy.
+| Topology | Decomposition Strategy | MPI Features Utilized |
+| :--- | :--- | :--- |
+| **Ring Topology** | 1D Row-wise Decomposition | `MPI_Scatter`, `MPI_Bcast`, `MPI_Gather` |
+| **Grid Topology** | 2D Cartesian Grid Decomposition | `MPI_Cart_create`, `MPI_Bcast` |
 
-*   **Topology**: A 2D Cartesian grid topology is created using `MPI_Cart_create`. The dimensions ($dim1 \times dim2$) are calculated to be as square as possible for the given number of processes.
-*   **Data Distribution**:
-    *   **Matrices B and C**: In this specific implementation, **both full matrices B and C are broadcast** to all processes using `MPI_Bcast`. Each process then extracts the specific sub-blocks it needs for calculation based on its grid coordinates. *Note: While simpler, this approach is less memory efficient than distributing only the necessary sub-blocks.*
-*   **Computation**: Each process calculates a specific sub-block of matrix $A$ (`APart`) defined by its coordinates in the grid. The root process then collects these sub-blocks from all other processes to reconstruct the final matrix $A$.
+---
 
-## Key MPI Functions
+## 🏗️ Architecture & Workflow
+The system follows a distributed memory architecture to separate data distribution from parallel computation:
 
-*   `MPI_Init` / `MPI_Finalize`: Initialize and terminate the MPI environment.
-*   `MPI_Comm_rank` / `MPI_Comm_size`: Determine process ID and total number of processes.
-*   `MPI_Cart_create`: Creates a new communicator with a Cartesian topology.
-*   `MPI_Cart_coords`: Determines process coordinates in the Cartesian topology.
-*   `MPI_Cart_shift`: (Ring) Finds neighbors for shifting data in the ring.
-*   `MPI_Scatter`: Distributes data from one process to all others in a communicator.
-*   `MPI_Bcast`: Broadcasts a message from the process with rank `root` to all other processes of the communicator.
-*   `MPI_Gather`: Gathers values from a group of processes together to one process.
+1. **Ingestion Layer:** The Root process reads matrix data from `input.txt`.
+2. **Topology Layer:** Virtual networks (1D Rings or 2D Grids) are formed via `MPI_Cart_create`.
+3. **Distribution Layer:** Data is partitioned across compute nodes using `MPI_Scatter` and `MPI_Bcast`.
+4. **Computation Layer:** Logical nodes perform localized dot-products on their specific sub-matrices (`APart`).
+5. **Assembly Layer:** Sub-matrices are aggregated back to the Root process via `MPI_Gather` for the final output.
 
-## Setup Instructions
+## 📂 Project Structure
+```text
+mpi-based-parallel-matrix-multiplication/
+├── matrix_matrix_ring.c                  # ⭕ 1D Ring Topology Source
+├── matrix_matrix_grid.c                  # 🔲 2D Grid Topology Source
+├── input.txt                             # 📥 Initial Data (Matrix B and C)
+├── outputA.txt                           # 📤 Computed Result Matrix
+├── Setup and Code Execution Instructions.txt # ⚙️ Greek Instructions
+├── Step And Commands.pdf                 # 📘 Setup Guide (PDF)
+└── README.md                             # 📖 Project Documentation
+```
 
-### bash Terminal Setup (Windows)
+🚀 Quick Start
+### 1. Installation
+```bash
+git clone https://github.com/FilippeZ/mpi-based-parallel-matrix-multiplication.git
+cd mpi-based-parallel-matrix-multiplication
+# Set up WSL / Ubuntu environment first, then:
+sudo apt-get update
+sudo apt-get install libmpich-dev
+```
 
-1.  **Enable Windows Subsystem for Linux (WSL)**:
-    *   Go to Control Panel > Programs > Turn Windows features on or off.
-    *   Enable "Windows Subsystem for Linux".
-    *   Restart your computer.
-    *   Install Ubuntu 16.04 (or a later version) from the Microsoft Store.
-
-2.  **Terminal Configuration**:
-    *   Open the Ubuntu terminal.
-    *   Run the following commands to update and install necessary libraries:
-        ```bash
-        sudo apt-get update
-        sudo apt-get install libmpich-dev
-        ```
-
-## Compilation
-
-The code is compiled using the `mpicc` wrapper compiler.
-
-### Ring Topology
-To compile the code for the ring topology:
-
+### 2. Compilation
+Compile for the topology of your choice (e.g., Ring Topology with $N=64$):
 ```bash
 mpicc matrix_matrix_ring.c -o mmr -DN=64 -lm
 ```
-*   `mpicc`: The MPI C compiler wrapper.
-*   `matrix_matrix_ring.c`: Source file for ring topology.
-*   `-o mmr`: Output executable name.
-*   `-DN=64`: Defines the matrix size $N=64$.
-*   `-lm`: Links the math library.
+*(For Grid Topology: `mpicc matrix_matrix_grid.c -o mmg -DN=64 -lm`)*
 
-### Grid Topology
-To compile the code for the grid topology:
-
-```bash
-mpicc matrix_matrix_grid.c -o mmg -DN=64 -lm
-```
-*   `mpicc`: The MPI C compiler wrapper.
-*   `matrix_matrix_grid.c`: Source file for grid topology.
-*   `-o mmg`: Output executable name.
-*   `-DN=64`: Defines the matrix size $N=64$.
-*   `-lm`: Links the math library.
-
-## Execution
-
-The compiled programs are executed using `mpirun`.
-
-### Input File Format (`input.txt`)
-The input file should contain the integer values for **Matrix B** followed by **Matrix C**. The Root process reads this file.
-*Example format:*
-```text
-0 1 0
-0 0 1
-1 0 0
-...
-```
-
-### Ring Topology
-To run the ring topology implementation:
-
+### 3. Launching the Cluster
+Execute the compiled binary assigning the number of processors (e.g., `-np 11`):
 ```bash
 mpirun -np 11 ./mmr < input.txt
 ```
-*   `mpirun`: Command to run MPI programs.
-*   `-np 11`: Specifies the number of processes (11 in this example).
-*   `./mmr`: The executable file.
-*   `< input.txt`: Redirects standard input from `input.txt` (contains matrix data).
 
-### Grid Topology
-To run the grid topology implementation:
+---
 
-```bash
-mpirun -np 11 ./mmg < input.txt
-```
-*   `mpirun`: Command to run MPI programs.
-*   `-np 11`: Specifies the number of processes.
-*   `./mmg`: The executable file.
-*   `< input.txt`: Input data file.
+## 🔬 Topology Deep Dive
 
-### Output
-Upon successful execution:
-1.  The console will display the time taken: `Total time taken: X secs`.
-2.  A file named **`outputA.txt`** will be generated containing the calculated result matrix.
+### ⭕ 1D Ring Topology
+Creates a logical, periodic one-dimensional ring using `MPI_Cart_create`.
+* **Matrix B** is distributed row-by-row across processes. If $N$ is not completely divisible by the number of nodes, the Root process handles the remainder.
+* **Matrix C** is broadcasted in its entirety to all nodes.
+* Processed partitions are computationally separated and `MPI_Gather` reassembles the final matrix at the Root.
+
+### 🔲 2D Grid Topology
+Organizes computation nodes into a 2D checkerboard Cartesian grid coordinate system.
+* Dimensions ($dim1 \times dim2$) are programmatically optimized to be as square-like as possible.
+* Coordinate boundaries allow processes to identify exactly which matrix blocks they claim via `MPI_Cart_coords`.
+
+## 🛠️ Tech Stack
+* **Language:** C
+* **Parallel API:** MPICH (Message Passing Interface)
+* **OS Environment:** Linux & Windows Subsystem for Linux (WSL)
+* **Math Library:** standard `<math.h>` (`-lm`)
+
+## 📄 License
+Licensed under the MIT License — see `LICENSE` for details.
+
+## 👤 Author
+**Filippos-Paraskevas Zygouris (FilippeZ)**
+[Github] | https://github.com/FilippeZ
