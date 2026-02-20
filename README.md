@@ -96,5 +96,4 @@ Organizes computation nodes into a 2D checkerboard Cartesian grid coordinate sys
 Licensed under the MIT License — see `LICENSE` for details.
 
 ## 👤 Author
-**Filippos-Paraskevas Zygouris (FilippeZ)**
-[Github] | https://github.com/FilippeZ
+Filippos-Paraskevas Zygouris (FilippeZ) [[Github]](https://github.com/FilippeZ) | https://github.com/FilippeZ
