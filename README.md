@@ -104,7 +104,7 @@ The 1D Ring Topology arranges $P$ processes in a closed, periodic one-dimensiona
   2. **Row Distribution:** Scatter/send row subsets of $B$ to corresponding ranks.
   3. **Broadcasting Matrix $C$:** Root process broadcasts complete matrix $C$ to all ranks using `MPI_Bcast`.
   4. **Parallel Computation:** Ranks calculate partial row-wise inner products:
-     $$\text{APart}_{i,j} = \sum_{k=0}^{N-1} \text{BPart}_{i,k} \cdot C_{k,j}$$
+     $$A_{\text{part}}[i,j] = \sum_{k=0}^{N-1} B_{\text{part}}[i,k] \cdot C_{k,j}$$
   5. **Data Collection:** Results are gathered back to Root using `MPI_Gather` (or custom send/receive for variable rank sizes).
 
 ### 2. 2D Cartesian Grid Topology (`src/matrix_matrix_grid.c`)
@@ -125,7 +125,7 @@ The 2D Grid Topology organizes processes into a 2-dimensional grid coordinate sy
 - **Cartesian Coordinate Mapping:**
   - Topology creation: `MPI_Cart_create(..., 2, dims, periods, reorder, &grid_comm)`.
   - Rank translation: `MPI_Cart_coords` and `MPI_Cart_rank` map process ranks to grid coordinates $(r, c)$.
-- **Sub-Block Partitioning:** Matrices $B$ and $C$ are split into sub-blocks. Each process rank operates on a sub-block of size $(\text{rows\_per\_proc} \times \text{cols\_per\_proc})$.
+- **Sub-Block Partitioning:** Matrices $B$ and $C$ are split into sub-blocks. Each process rank operates on a sub-block of size (`rows_per_proc` $\times$ `cols_per_proc`).
 - **Inter-Process Communication:** Uses sub-communicators and rank shifts (`MPI_Cart_shift`) across grid rows and columns for synchronized block exchanges.
 
 ---
@@ -143,7 +143,7 @@ The 2D Grid Topology organizes processes into a 2-dimensional grid coordinate sy
 | `MPI_Cart_shift` | Finds neighbor ranks (`source`, `dest`) along grid dimensions. | 1D Ring / 2D Grid |
 | `MPI_Bcast` | Broadcasts matrix $C$ or sub-blocks from Root to all processes. | Data Distribution |
 | `MPI_Scatter` / `MPI_Send` | Distributes rows or blocks of Matrix $B$ across ranks. | Data Distribution |
-| `MPI_Gather` / `MPI_Recv` | Collects computed sub-matrices $\text{APart}$ back to Root. | Result Collection |
+| `MPI_Gather` / `MPI_Recv` | Collects computed sub-matrices $A_{\text{part}}$ back to Root. | Result Collection |
 | `MPI_Wtime` | High-resolution wall-clock timer for performance benchmarking. | Benchmarking |
 | `MPI_Finalize` | Terminates MPI execution and releases resources. | Global Teardown |
 
