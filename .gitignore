@@ -1,0 +1,15 @@
+# Executables & Build Output
+bin/
+*.o
+*.out
+mmr
+mmg
+mmn
+
+# Operating System & IDE Artifacts
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*~
